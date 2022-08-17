@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/jmbutler/Desktop/GitHub/ApolloSM_example'
+c++ -std=c++11 -g -O3 -rdynamic -Wall -MMD -MP -fPIC -I/opt/BUTool/include  -Werror -Wno-literal-suffix -fno-omit-frame-pointer -Wno-ignored-qualifiers -Werror=return-type -Wextra -Wno-long-long -Winit-self -Wno-unused-local-typedefs  -Woverloaded-virtual -DUHAL_VER_MAJOR=2 -DUHAL_VER_MINOR=7   -isystem/opt/cactus/include  -isystem/include -c example.cxx -o example.o
+c++ -Wall -g -O3 -rdynamic -L/opt/BUTool/lib  -Wl,-rpath=/opt/BUTool/lib -lToolException -lBUTool_IPBusIO -lBUTool_IPBusRegHelpers -lBUTool_IPBusStatus -lBUTool_BUTextIO -lboost_regex -lboost_filesystem -lboost_program_options -lBUTool_Helpers -Wl,-rpath=/lib   -L/opt/cactus/lib -Wl,-rpath=/opt/cactus/lib  -Wl,-rpath=/lib -lcactus_uhal_log -lcactus_uhal_grammars -lcactus_uhal_uhal 		 -lBUTool_ApolloSM -lboost_system -lpugixml -lBUTool_IPBusIO -Wl,-rpath=/opt/BUTool/lib -lToolException -lBUTool_IPBusIO -lBUTool_IPBusRegHelpers -lBUTool_IPBusStatus -lBUTool_BUTextIO -lboost_regex -lboost_filesystem -lboost_program_options  -o example example.o
+make: Leaving directory `/Users/jmbutler/Desktop/GitHub/ApolloSM_example'
+ 
