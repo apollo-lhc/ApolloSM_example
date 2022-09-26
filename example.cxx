@@ -8,13 +8,17 @@
 #include <chrono>
 #include <random>
 
+ApolloSM * SM = NULL;
+
+int loop_back_test(std::string node, uint32_t loops);
+
 int main(int argc, char** argv) { 
   if(argc < 2){
     printf("%s connection file\n",argv[0]);
     return 1;
   }
 
-  ApolloSM * SM = NULL;
+  //  ApolloSM * SM = NULL;
 
   try{
     // ==================================
@@ -63,13 +67,6 @@ int main(int argc, char** argv) {
     printf("PL_MEM.SCRATCH.WORD_00 = 0x%08X\n",pl_mem);
 
     SM->unblockAXI();
-    uint32_t k_mem;
-    SM->WriteRegister("KINTEX_BRAM.MEM",0xAAAA5555);
-    k_mem = SM->ReadRegister("KINTEX_BRAM.MEM");
-    printf("KINTEX_BRAM.MEM = 0x%08X\n",k_mem);
-    SM->WriteRegister("KINTEX_BRAM.MEM",0x5555AAAA);
-    k_mem = SM->ReadRegister("KINTEX_BRAM.MEM");
-    printf("KINTEX_BRAM.MEM = 0x%08X\n",k_mem);
 
     // Read out the CM S/N from the DS28CM00 device
     std::cout << std::endl << "Read out the DS28CM00 device on the MPI CM" << std::endl; 
@@ -96,98 +93,10 @@ int main(int argc, char** argv) {
     std::cout << "CRC of Family Code and 48-bit Serial Number = 0x" 
 	      << cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) << std::endl;
 
-    /*
-    SM->GenerateStatusDisplay(1,std::cout,std::string("CM"));
-    std::cout << "Turning on CM_1 power" << std::endl;
-    SM->PowerUpCM(1,10);
-    SM->GenerateStatusDisplay(1,std::cout,std::string("CM"));
-    SM->GenerateStatusDisplay(3,std::cout,std::string("C2C"));
-
-    std::cout << "Turning off CM_1 power" << std::endl;
-    SM->PowerDownCM(1,10);
-    SM->GenerateStatusDisplay(1,std::cout,std::string("CM"));
-    */
-
     uint32_t loops = 1000000;
-
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<unsigned int> distrib(0, 0xFFFFFFFF);
-
-    auto begin = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
-    double speed;
-    
-    std::cout << std::endl << "Loop test of CM write-read data integrity and speed" << std::endl << std::endl; 
-
-    for(uint32_t i = 0; i < loops; ++i) {
-      uint32_t wr = distrib(gen);
-      SM->WriteRegister("KINTEX_BRAM.MEM",wr);
-      k_mem = SM->ReadRegister("KINTEX_BRAM.MEM");
-
-      if (wr != k_mem) {
-	std::cout << "R/W error: loop " << i << ", wr = " << std::hex << wr 
-		  << ", k_mem = " << k_mem << std::endl << std::endl;
-	return -1;
-      }
-
-      if (i < 10) {
-	std::cout << "wr = " << wr << ", k_mem = " << k_mem << std::endl;
-      }
-       
-      if (i%100000 == 0 && i != 0) {
-	end = std::chrono::high_resolution_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
-	speed = 2.*32.*i/duration;
-	std::cout << std::dec << i << " reads done, speed = " << speed <<  " Mbps" << std::endl;
-      }
-
-    }
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
-
-    std::cout << std::endl << "Speed test: " << std::dec << loops << " write-reads of KINTEX_BRAM.MEM" << std::endl;
-    std::cout << duration << " us total, average : " << duration / loops << " us." << std::endl;
-
-    speed = 2.*32.*loops/duration;
-    std::cout << "Speed = " << speed << " Mbps" << std::endl;
-
-    std::cout << std::endl << "Loop test of SM write-read data integrity and speed" << std::endl << std::endl;
-
-    begin = std::chrono::high_resolution_clock::now();
-
-    for(uint32_t i = 0; i < loops; ++i) {
-      uint32_t wr = distrib(gen);
-      SM->WriteRegister("PL_MEM.SCRATCH.WORD_00",wr);
-      k_mem = SM->ReadRegister("PL_MEM.SCRATCH.WORD_00");
-
-      if (wr != k_mem) {
-	std::cout << "R/W error: loop " << i << ", wr = " << std::hex << wr
-                  << ", k_mem = " << k_mem << std::endl << std::endl;
-        return -1;
-      }
-
-      if (i < 10) {
-	std::cout << "wr = " << wr << ", k_mem = " << k_mem << std::endl;
-      }
-
-      if (i%100000 == 0 && i != 0) {
-        end = std::chrono::high_resolution_clock::now();
-        duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
-        speed = 2.*32.*i/duration;
-	std::cout << std::dec << i << " reads done, speed = " << speed <<  " Mbps" << std::endl;
-      }
-
-    }
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
-
-    std::cout << std::endl << "Speed test: " << std::dec << loops << " write-reads of PL_MEM.SCRATCH.WORD_00" << std::endl;
-    std::cout << duration << " us total, average : " << duration / loops << " us." << std::endl;
-
-    speed = 2.*32.*loops/duration;
-    std::cout << "Speed = " << speed << " Mbps" << std::endl;
+    //    std::string node = "KINTEX_BRAM.MEM";
+    std::string node = "PL_MEM.SCRATCH.WORD_00";
+    loop_back_test(node,loops);
 
   }catch(BUException::exBase const & e){
     printf("Caught BUException: %s\n   Info: %s\n",e.what(),e.Description());          
@@ -200,5 +109,62 @@ int main(int argc, char** argv) {
     delete SM;
   }
   
+  return 0;
+}
+
+int loop_back_test(std::string node, uint32_t loops) {
+
+  uint32_t write_mem;
+  uint32_t read_mem;
+
+  double speed;
+
+  std::random_device rd;  //Will be used to obtain a seed for the random number engine
+  std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+  std::uniform_int_distribution<unsigned int> distrib(0, 0xFFFFFFFF);
+
+  auto begin = std::chrono::high_resolution_clock::now();
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
+    
+  std::cout << std::endl << "Loop test of AXI C2C data integrity and speed" << std::endl 
+	    << std::dec << loops << " loops doing write-read of random 32-bit words to " << node 
+	    << std::endl << std::endl; 
+
+  for(uint32_t i = 0; i < loops; ++i) {
+
+    write_mem = distrib(gen);
+    //    write_mem = 0xDEADBEEF;
+    SM->WriteRegister(node,write_mem);
+    read_mem = SM->ReadRegister(node);
+
+    if (write_mem != read_mem) {
+      std::cout << "R/W error: loop " << i << ", write_mem = " << std::hex << write_mem 
+		<< ", read_mem = " << read_mem << std::endl << std::endl;
+      return -1;
+    }
+
+    if (i < 10) {
+      std::cout << "write_mem = " << std::hex << write_mem << ", read_mem = " << read_mem << std::endl;
+    }
+       
+    if (i%100000 == 0 && i != 0) {
+      end = std::chrono::high_resolution_clock::now();
+      duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
+      speed = 2.*32.*i/duration;
+      std::cout << std::dec << i << " reads done, speed = " << speed <<  " Mbps" << std::endl;
+    }
+
+  }
+   
+  end = std::chrono::high_resolution_clock::now();
+  duration = std::chrono::duration_cast<std::chrono::microseconds>(end-begin).count();
+
+  std::cout << std::endl << "Speed test: " << std::dec << loops << " write-reads of " << node << std::endl;
+  std::cout << duration << " us total, average : " << duration / loops << " us." << std::endl;
+
+  speed = 2.*32.*loops/duration;
+  std::cout << "Speed = " << speed << " Mbps" << std::endl;
+
   return 0;
 }
