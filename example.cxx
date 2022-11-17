@@ -11,6 +11,7 @@
 ApolloSM * SM = NULL;
 
 int loop_back_test(std::string node, uint32_t loops);
+std::string read_CM_SN(int debug);
 
 int main(int argc, char** argv) { 
   if(argc < 2){
@@ -68,30 +69,12 @@ int main(int argc, char** argv) {
 
     SM->unblockAXI();
 
-    // Read out the CM S/N from the DS28CM00 device
-    std::cout << std::endl << "Read out the DS28CM00 device on the MPI CM" << std::endl; 
-    std::string cm_i2c_temp;
-    std::string cm_sn; 
-    // set starting address
-    cm_i2c_temp = SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x4 0x00",'>');
-    cm_i2c_temp = SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');    
-    std::cout << "Device Family Code = 0x" << cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) << std::endl;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
-    std::cout << "CM addreess = 0x" << cm_sn << std::endl;
-    cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
-    std::cout << "CRC of Family Code and 48-bit Serial Number = 0x" 
-	      << cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) << std::endl;
+    // Read out the CM S/N from the DS28CM00 device                                                          
+    std::cout << std::endl << "Read out the DS28CM00 device on the MPI CM" << std::endl;                     
+    for (int i=0; i<10;  i++) {
+      std::string cm_sn = read_CM_SN(0);
+      std::cout << "CM SN = " << cm_sn << std::endl;
+    }
 
     uint32_t loops = 1000000;
     //    std::string node = "KINTEX_BRAM.MEM";
@@ -116,6 +99,7 @@ int loop_back_test(std::string node, uint32_t loops) {
 
   uint32_t write_mem;
   uint32_t read_mem;
+  //  uint32_t node_address = 0x150007f0;
 
   double speed;
 
@@ -135,7 +119,9 @@ int loop_back_test(std::string node, uint32_t loops) {
 
     write_mem = distrib(gen);
     //    write_mem = 0xDEADBEEF;
+    //    SM->WriteAddress(node_address,write_mem);
     SM->WriteRegister(node,write_mem);
+    //    read_mem = SM->ReadAddress(node_address);
     read_mem = SM->ReadRegister(node);
 
     if (write_mem != read_mem) {
@@ -167,4 +153,40 @@ int loop_back_test(std::string node, uint32_t loops) {
   std::cout << "Speed = " << speed << " Mbps" << std::endl;
 
   return 0;
+}
+
+std::string read_CM_SN(int debug)
+{
+  // Read out the CM S/N from the DS28CM00 device                                   
+
+  if (debug)
+    std::cout << std::endl << "Read out the DS28CM00 device on the MPI CM" << std::endl;
+  std::string cm_i2c_temp;
+  std::string cm_sn;
+  // set starting address                                                           
+  cm_i2c_temp = SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x4 0x00",'>');
+  cm_i2c_temp = SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  if (debug) 
+    std::cout << "Device Family Code = 0x" << cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) << std::endl;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  cm_sn = cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) + cm_sn;
+  cm_sn = "0x" + cm_sn;
+  if (debug)
+    std::cout << "CM addreess = " << cm_sn << std::endl;
+  cm_i2c_temp =  SM->UART_CMD("/dev/ttyUL1","i2c 4 0x50 0x3 1",'>');
+  if (debug)
+    std::cout << "CRC of Family Code and 48-bit Serial Number = 0x"
+	      << cm_i2c_temp.substr(cm_i2c_temp.length()-3,2) << std::endl;
+
+  return cm_sn;
 }
