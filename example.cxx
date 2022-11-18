@@ -71,12 +71,27 @@ int main(int argc, char** argv) {
 
     // Read out the CM S/N from the DS28CM00 device                                                          
     std::cout << std::endl << "Read out the DS28CM00 device on the MPI CM" << std::endl;                     
-    for (int i=0; i<10;  i++) {
+    uint32_t loops = 100;
+    std::string cm_sn_0 = "0";
+    for (uint32_t i=0; i<loops;  i++) {
       std::string cm_sn = read_CM_SN(0);
-      std::cout << "CM SN = " << cm_sn << std::endl;
+      if (i == 0) {
+	cm_sn_0 = cm_sn;
+	std::cout << std::dec << i <<". CM SN = " << cm_sn << std::endl;
+      }
+      else {
+	if (cm_sn != cm_sn_0) {
+	  std::cout << "Error: read " << cm_sn << ", should be " 
+		    << cm_sn_0 << std::endl;
+	  return -1;
+	}
+      }
+      if (i%10 == 0 && i != 0) {
+	std::cout << std::dec << i <<". CM SN = " << cm_sn << std::endl;
+      }
     }
 
-    uint32_t loops = 1000000;
+    loops = 1000000;
     //    std::string node = "KINTEX_BRAM.MEM";
     std::string node = "PL_MEM.SCRATCH.WORD_00";
     loop_back_test(node,loops);
@@ -158,7 +173,6 @@ int loop_back_test(std::string node, uint32_t loops) {
 std::string read_CM_SN(int debug)
 {
   // Read out the CM S/N from the DS28CM00 device                                   
-
   if (debug)
     std::cout << std::endl << "Read out the DS28CM00 device on the MPI CM" << std::endl;
   std::string cm_i2c_temp;
